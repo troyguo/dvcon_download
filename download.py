@@ -29,7 +29,7 @@ def download_file(connection, type_s, download_url):
 
 def main(connection):
     locations = ["USA", "Europe"]
-    years = [2019] 2018, 2017, 2016]
+    years = [2019, 2018, 2017, 2016]
     cur_dir = os.path.abspath(os.path.curdir)
 
     ##TODO: split this function into smaller ones.
