@@ -5,6 +5,18 @@ Download proceedings from DVCon USA/ DVCon Euorpe
 This script is intended to download the DVCON papers from the official website. For the url has some common format, downloading them by hand would be rather tedious. Here comes an idea to write a simple script to download them.
 
 
+
+## Preparation
+
+The python library urllib3 is used in this file. Install it before usage:
+
+```
+sudo pip3 install urllib3
+```
+
+
+
+
 ## How to use 
 ```python
 git clone https://github.com/troyguo/dvcon_download.git
@@ -16,8 +28,6 @@ After running, folder named by location and year will be seen under the current 
 
 ## Limitation 
 Currently, for DVCON Europe, only the year after 2016 can be downloaded, it's caused by the url format difference from the year 2015 and 2016.
-
-
 
 
 
