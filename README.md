@@ -6,7 +6,7 @@ This script is intended to download the DVCON papers from the official website. 
 
 
 
-## Preparation
+## Prerequis Prerequisites
 
 The python library urllib3 is used in this file. Install it before usage:
 

@@ -2,12 +2,23 @@ import urllib3
 import os
 import logging
 
-#"http://events.dvcon.org/Europe/2018/proceedings/papers/01_3.pdf"
-temp_str = "http://events.dvcon.org/{location}/{year:0d}/proceedings/{type_s}/{chapter:02d}_{item:0d}.pdf"
+##Modify those two according to your necessary.
+locations = ["USA", "Europe"]
+years = [2020, 2019, 2018, 2017, 2016]
 
-MAX_CHAPTER = 30
-MAX_ITEM = 30
 
+####################################################
+##the maximum iteration of chapters 
+MAX_CHAPTER = 1024
+
+##the maximum iteration of papers in single chapter
+MAX_ITEM = 1024
+
+def rename_pdf_file(file_name):
+    pass
+
+##download single file
+##return false if successful
 def download_file(connection, type_s, download_url):
     ##try to connect to the website, if not success, skip the writing file step.
     rsp = connection.request("GET", download_url)
@@ -27,9 +38,74 @@ def download_file(connection, type_s, download_url):
 
     return True
 
+
+###helper function to change directory
+def change_dir(dir_name):
+    try:
+        os.chdir(dir_name)
+    except:
+        logging.fatal("cannot chdir to dir {}".format(dir_name))
+        sys.exit(-1)
+
+##helper function to mkdir
+##return false if not successful
+def create_dir(dir_name):
+    try:
+        os.mkdir(dir_name)
+    except FileExistsError:
+        s = "Folder {dir} already exists, skipping".format(dir = dir_name)
+        logging.warning(s)
+        return False
+
+    ##success
+    return True
+
+##Wrapper to easier the loop downloading files
+def download_file_wrapper(connection, year, location, chapter, type_s):
+    #"http://events.dvcon.org/Europe/2018/proceedings/papers/01_3.pdf"
+    str_fmt = "http://events.dvcon.org/{location}/{year:0d}/proceedings/{type_s}/{chapter:02d}_{item:0d}.pdf"
+
+    valid = False ##incidate whether tis types in this chapter exits
+
+    ##
+    for item in range(1, MAX_ITEM):
+        s = str_fmt.format(year = year,
+                        location = location,
+                        chapter = chapter,
+                        item = item,
+                        type_s  = type_s
+                        )
+        ret = download_file(connection, type_s, s)
+
+        ##if any success
+        if(ret):
+            valid = True
+        else:
+            break
+
+    return valid
+
+
+## wrapper function to download each folder (usa_2020)
+def download_dvcon_files(connection, year,  location):
+    ##iterate each chpater, the type can be paper/silde/posters
+    ##they are under diffrent folders
+    for chapter in range(1, MAX_CHAPTER):
+        chapter_valid = False
+        for type_s in ["papers", "slides", "posters"]:
+            ##if the first item in this type if not there, skip the entire type
+            type_valid = download_file_wrapper(connection, year, location,
+                chapter, type_s)
+            if(not type_valid):
+               continue 
+            else:
+                chapter_valid = True
+        ##
+        if(not chapter_valid):
+            break
+
+##main entry
 def main(connection):
-    locations = ["USA", "Europe"]
-    years = [2019, 2018, 2017, 2016]
     cur_dir = os.path.abspath(os.path.curdir)
 
     ##TODO: split this function into smaller ones.
@@ -38,42 +114,27 @@ def main(connection):
             rel_path = location + "_{year:0d}".format(year = year)
             ##create a subfolder, format: Europe_2018, USA_2018
             dir_name = os.path.join(cur_dir, rel_path)
-            try:
-                os.mkdir(dir_name)
-            except FileExistsError:
-                s = "Folder {dir} already exists, skipping".format(dir = dir_name)
-                logging.warning(s)
-                continue
 
-            ##
-            try:
-                os.chdir(dir_name)
-            except:
-                sys.exit("cannot chdir to dir {}".format(dir_name))
+            ##if the foler exits, skip
+            if(not create_dir(dir_name)):
+                 continue
 
+            ##down load the file
+            change_dir(dir_name)
+            
             ##if USA, url for location should be empty
             if(location == "USA"):
                 location = ""
 
-            for chapter in range(1, MAX_CHAPTER):
-                for type_s in ["papers", "slides", "posters"]:
-                        for item in range(1, MAX_ITEM):
-                            s = temp_str.format(year = year,
-                                                location = location,
-                                                chapter = chapter,
-                                                item = item,
-                                                type_s  = type_s
-                                                )
-                            ret = download_file(connection, type_s, s)
-                            if(not ret):
-                                break
+            ##do th real downloading.
+            download_dvcon_files(connection, year,  location)
 
-            ##chdir back.
-            try:
-                os.chdir(cur_dir)
-            except:
-                sys.exit("cannot chdir to dir {}".format(dir_name))
+            ##go back.
+            change_dir(cur_dir)
             ##
+
+    ##happy ending
+    logging.info("Enjoy DVCON!!!")
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
