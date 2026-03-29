@@ -36,7 +36,7 @@ def get_html(url):
 def download_pdf(pdf_url, save_path):
     """Download a single PDF file"""
     try:
-        response = requests.get(pdf_url, stream=True)
+        response = requests.get(pdf_url, stream=True, timeout=30)
         with open(save_path, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
