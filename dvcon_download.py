@@ -27,7 +27,7 @@ def get_html(url):
     """Fetch HTML content with headers"""
     try:
         req = urllib.request.Request(url, headers=HEADERS)
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=5) as resp:
             return resp.read().decode("utf-8", errors="ignore")
     except Exception as e:
         print(f"Failed to fetch page: {url} | Error: {str(e)}")
