@@ -2,7 +2,10 @@ import urllib.request
 import urllib.parse
 import os
 import re
+import sys
+import codecs
 from urllib.error import HTTPError, URLError
+import requests
 
 # ===================== Configuration =====================
 BASE_URL = "https://dvcon-proceedings.org/document-library"
@@ -33,11 +36,11 @@ def get_html(url):
 def download_pdf(pdf_url, save_path):
     """Download a single PDF file"""
     try:
-        req = urllib.request.Request(pdf_url, headers=HEADERS)
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            with open(save_path, "wb") as f:
-                f.write(resp.read())
-        print(f"✅ Download succeeded: {save_path}")
+        response = requests.get(pdf_url, stream=True)
+        with open(save_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+            print(f"✅ Download succeeded: {save_path}")
     except Exception as e:
         print(f"❌ Download failed: {pdf_url} | Error: {str(e)}")
 
@@ -61,7 +64,7 @@ def crawl(url):
         filename = os.path.basename(pdf_link.split("?")[0])
         save_path = os.path.join(SAVE_DIR, filename)
         if(not os.path.exists(save_path)):
-            print(f"✅ Prepare to download: {pdf_link, save_path}")
+            print(f"Prepare to download: {pdf_link, save_path}")
             download_pdf(pdf_link, save_path)
 
     # Find internal links to crawl
