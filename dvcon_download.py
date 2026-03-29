@@ -47,7 +47,7 @@ def crawl(url):
         return
     visited.add(url)
 
-    print(f"\nCrawling: {url}")
+    #print(f"\nCrawling: {url}")
     html = get_html(url)
     if not html:
         return
@@ -61,16 +61,16 @@ def crawl(url):
         filename = os.path.basename(pdf_link.split("?")[0])
         save_path = os.path.join(SAVE_DIR, filename)
         if(not os.path.exists(save_path)):
-            print(f"✅ Prepare to download succeeded: {pdf_link, save_path}")
+            print(f"✅ Prepare to download: {pdf_link, save_path}")
             download_pdf(pdf_link, save_path)
 
     # Find internal links to crawl
-    #link_pattern = r'href="(https?://dvcon-proceedings\.org[^"]+)"'
-    #page_links = re.findall(link_pattern, html)
+    link_pattern = r'href="(https?://dvcon-proceedings\.org[^"]+)"'
+    page_links = re.findall(link_pattern, html)
 
-    #for link in page_links:
-    #    if link not in visited and not link.lower().endswith(".pdf"):
-    #        crawl(link)
+    for link in page_links:
+        if link not in visited and not link.lower().endswith(".pdf"):
+            crawl(link)
 
 if __name__ == "__main__":
     print("Starting recursive PDF crawler...")
